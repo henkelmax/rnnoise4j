@@ -6,7 +6,7 @@
 
     <groupId>de.maxhenkel.rnnoise4j</groupId>
     <artifactId>rnnoise4j</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <name>RNNoise wrapper for Java</name>
     <url>https://maxhenkel.de</url>
