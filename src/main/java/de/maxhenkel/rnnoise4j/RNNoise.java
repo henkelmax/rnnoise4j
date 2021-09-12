@@ -9,7 +9,7 @@ import java.io.File;
 
 public interface RNNoise extends Library {
 
-    RNNoise INSTANCE = Native.load(NativeLibrary.getInstance(LibraryLoader.getPath()).getFile().getAbsolutePath(), RNNoise.class);
+    RNNoise INSTANCE = Native.loadLibrary(NativeLibrary.getInstance(LibraryLoader.getPath()).getFile().getAbsolutePath(), RNNoise.class);
 
     int rnnoise_get_size();
 
