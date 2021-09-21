@@ -10,7 +10,7 @@ A Java wrapper for [RNNoise](https://jmvalin.ca/demo/rnnoise/).
 <dependency>
   <groupId>de.maxhenkel.rnnoise4j</groupId>
   <artifactId>rnnoise4j</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
 </dependency>
 
 <repositories>
@@ -25,7 +25,7 @@ A Java wrapper for [RNNoise](https://jmvalin.ca/demo/rnnoise/).
 
 ``` groovy
 dependencies {
-  implementation 'de.maxhenkel.rnnoise4j:rnnoise4j:1.0.0'
+  implementation 'de.maxhenkel.rnnoise4j:rnnoise4j:1.0.1'
 }
 
 repositories {
