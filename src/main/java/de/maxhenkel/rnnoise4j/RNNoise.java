@@ -1,30 +1,35 @@
 package de.maxhenkel.rnnoise4j;
 
-import com.sun.jna.Library;
-import com.sun.jna.Native;
-import com.sun.jna.NativeLibrary;
-import com.sun.jna.Pointer;
+import java.io.IOException;
 
-import java.io.File;
+class RNNoise {
 
-public interface RNNoise extends Library {
+    private static boolean loaded;
+    private static Exception error;
 
-    RNNoise INSTANCE = Native.load(NativeLibrary.getInstance(LibraryLoader.getPath()).getFile().getAbsolutePath(), RNNoise.class);
+    public static void load() throws UnknownPlatformException, IOException {
+        if (loaded) {
+            if (error != null) {
+                if (error instanceof IOException) {
+                    throw (IOException) error;
+                } else if (error instanceof UnknownPlatformException) {
+                    throw (UnknownPlatformException) error;
+                }
+                throw new RuntimeException(error);
+            }
+            return;
+        }
+        try {
+            LibraryLoader.load("rnnoise4j");
+            loaded = true;
+        } catch (UnknownPlatformException | IOException e) {
+            error = e;
+            throw e;
+        }
+    }
 
-    int rnnoise_get_size();
-
-    int rnnoise_get_frame_size();
-
-    int rnnoise_init(Pointer state, Pointer model);
-
-    Pointer rnnoise_create(Pointer model);
-
-    void rnnoise_destroy(Pointer state);
-
-    float rnnoise_process_frame(Pointer state, float[] out, float[] in);
-
-    Pointer rnnoise_model_from_file(File file);
-
-    void rnnoise_model_free(Pointer model);
+    public static boolean isLoaded() {
+        return loaded && error == null;
+    }
 
 }

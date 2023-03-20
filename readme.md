@@ -1,6 +1,6 @@
 # RNNoise4J
 
-A Java wrapper for [RNNoise](https://jmvalin.ca/demo/rnnoise/).
+A Java wrapper for [RNNoise](https://jmvalin.ca/demo/rnnoise/) written in Rust using JNI.
 
 ## Usage
 
@@ -10,7 +10,7 @@ A Java wrapper for [RNNoise](https://jmvalin.ca/demo/rnnoise/).
 <dependency>
   <groupId>de.maxhenkel.rnnoise4j</groupId>
   <artifactId>rnnoise4j</artifactId>
-  <version>1.0.1</version>
+  <version>2.0.0</version>
 </dependency>
 
 <repositories>
@@ -25,7 +25,7 @@ A Java wrapper for [RNNoise](https://jmvalin.ca/demo/rnnoise/).
 
 ``` groovy
 dependencies {
-  implementation 'de.maxhenkel.rnnoise4j:rnnoise4j:1.0.1'
+  implementation 'de.maxhenkel.rnnoise4j:rnnoise4j:2.0.0'
 }
 
 repositories {
@@ -39,20 +39,14 @@ repositories {
 ## Example Code
 
 ``` java
-Pointer state = RNNoise.INSTANCE.rnnoise_create(null);
-
-...
-
-float[] audioData = ...; // Raw 16-bit mono PCM sampled audio at 48 kHz
-float[] denoisedAudio = new float[audioData.length];
-RNNoise.INSTANCE.rnnoise_process_frame(state, denoisedAudio, audioData);
-
-...
-
-RNNoise.INSTANCE.rnnoise_destroy(state);
+short[] noisyAudio = ...;
+Denoiser denoiser = new Denoiser();
+short[] denoisedAudio = denoiser.denoise(noisyAudio);
+denoiser.close();
 ```
 
 ## Sources
 
 - [RNNoise](https://gitlab.xiph.org/xiph/rnnoise)
-- [RNNoise Binaries](https://github.com/mjwells2002/rnnoise-bin)
+- [nnnoiseless](https://github.com/jneem/nnnoiseless)
+- [jni-rs](https://github.com/jni-rs/jni-rs)

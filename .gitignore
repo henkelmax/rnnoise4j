@@ -2,3 +2,7 @@
 build/
 target/
 *.iml
+*.log
+*.dll
+*.dylib
+*.so
