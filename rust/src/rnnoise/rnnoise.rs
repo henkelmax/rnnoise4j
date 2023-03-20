@@ -29,11 +29,16 @@ pub extern "C" fn Java_de_maxhenkel_rnnoise4j_Denoiser_denoise<'a>(mut env: JNIE
     };
 
     let mut short_array = vec![0i16 as jshort; input_length];
-    let mut input_float_array = vec![0f32; input_length];
 
-    for i in 0..input_length {
-        input_float_array[i] = short_array[i] as f32;
-    }
+    match env.get_short_array_region(input, 0, &mut short_array) {
+        Ok(_) => {}
+        Err(e) => {
+            throw_runtime_exception(&mut env, format!("Failed to convert short array: {}", e));
+            return JShortArray::from(JObject::null());
+        }
+    };
+
+    let input_float_array: Vec<f32> = short_array.iter().map(|sample| *sample as f32).collect();
 
     let mut output_float_array = vec![0f32; input_length];
     let mut out_buf = [0f32; DenoiseState::FRAME_SIZE];
