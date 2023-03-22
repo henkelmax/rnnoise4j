@@ -28,6 +28,11 @@ pub extern "C" fn Java_de_maxhenkel_rnnoise4j_Denoiser_denoise<'a>(mut env: JNIE
         }
     };
 
+    if input_length % DenoiseState::FRAME_SIZE != 0 {
+        let _ = env.throw(("java/lang/IllegalArgumentException", format!("Input length must be a multiple of {}", DenoiseState::FRAME_SIZE)));
+        return JShortArray::from(JObject::null());
+    }
+
     let mut short_array = vec![0i16 as jshort; input_length];
 
     match env.get_short_array_region(input, 0, &mut short_array) {
