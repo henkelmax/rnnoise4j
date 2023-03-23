@@ -1,10 +1,13 @@
 package de.maxhenkel.rnnoise4j;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 class LibraryLoader {
 
@@ -88,22 +91,60 @@ class LibraryLoader {
     }
 
     public static void load(String libraryName) throws UnknownPlatformException, IOException {
-        File tempDir = new File(getTempDir(), libraryName);
+        String resourcePath = getResourcePath(libraryName);
+
+        @Nullable String md5 = null;
+        try (InputStream in = getResource(resourcePath)) {
+            if (in == null) {
+                throw new UnknownPlatformException(String.format("Could not find %s natives for platform %s", libraryName, getNativeFolderName()));
+            }
+            md5 = checksum(in);
+        } catch (Exception ignored) {
+        }
+
+        File tempDir = new File(getTempDir(), md5 == null ? libraryName : String.format("%s-%s", libraryName, md5));
         tempDir.mkdirs();
 
         File tempFile = new File(tempDir, getLibraryName(libraryName));
 
-        try (InputStream in = LibraryLoader.class.getClassLoader().getResourceAsStream(getResourcePath(libraryName))) {
-            if (in == null) {
-                throw new UnknownPlatformException(String.format("Could not find %s natives for platform %s", libraryName, getNativeFolderName()));
+        if (!tempFile.exists()) {
+            try (InputStream in = getResource(resourcePath)) {
+                if (in == null) {
+                    throw new UnknownPlatformException(String.format("Could not find %s natives for platform %s", libraryName, getNativeFolderName()));
+                }
+                Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
-            Files.copy(in, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
+
         try {
             System.load(tempFile.getAbsolutePath());
         } catch (UnsatisfiedLinkError e) {
             throw new UnknownPlatformException(String.format("Could not load %s natives for %s", libraryName, getNativeFolderName()), e);
         }
+    }
+
+    @Nullable
+    private static InputStream getResource(String path) {
+        return LibraryLoader.class.getClassLoader().getResourceAsStream(path);
+    }
+
+    private static String checksum(InputStream inputStream) throws NoSuchAlgorithmException, IOException {
+        byte[] buffer = new byte[1024];
+        MessageDigest digest = MessageDigest.getInstance("MD5");
+        int numRead;
+        do {
+            numRead = inputStream.read(buffer);
+            if (numRead > 0) {
+                digest.update(buffer, 0, numRead);
+            }
+        } while (numRead != -1);
+        inputStream.close();
+        byte[] bytes = digest.digest();
+        StringBuilder result = new StringBuilder();
+        for (byte value : bytes) {
+            result.append(String.format("%02x", value));
+        }
+        return result.toString();
     }
 
 }
