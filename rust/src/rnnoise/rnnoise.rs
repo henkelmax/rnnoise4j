@@ -2,6 +2,7 @@ use jni::{JNIEnv};
 use jni::objects::{JClass, JObject, JShortArray, JValue};
 use jni::sys::{jlong, jshort};
 use nnnoiseless::DenoiseState;
+use crate::rnnoise::exceptions::{throw_illegal_argument_exception, throw_illegal_state_exception, throw_runtime_exception};
 
 const FLOAT_SHORT_SCALE: f32 = (i16::MAX - 1i16) as f32;
 
@@ -29,7 +30,7 @@ pub extern "C" fn Java_de_maxhenkel_rnnoise4j_Denoiser_denoise<'a>(mut env: JNIE
     };
 
     if input_length % DenoiseState::FRAME_SIZE != 0 {
-        let _ = env.throw(("java/lang/IllegalArgumentException", format!("Input length must be a multiple of {}", DenoiseState::FRAME_SIZE)));
+        throw_illegal_argument_exception(&mut env, format!("Input length must be a multiple of {}", DenoiseState::FRAME_SIZE));
         return JShortArray::from(JObject::null());
     }
 
@@ -129,7 +130,7 @@ fn get_denoiser_from_pointer(pointer: jlong) -> &'static mut DenoiseState<'stati
 fn get_denoiser(env: &mut JNIEnv, obj: &JObject) -> Option<&'static mut DenoiseState<'static>> {
     let pointer = get_pointer(env, obj);
     if pointer == 0 {
-        let _ = env.throw(("java/lang/IllegalStateException", "Denoiser is closed"));
+        throw_illegal_state_exception(env, "Denoiser is closed");
         return None;
     }
     return Some(get_denoiser_from_pointer(pointer));
@@ -138,8 +139,4 @@ fn get_denoiser(env: &mut JNIEnv, obj: &JObject) -> Option<&'static mut DenoiseS
 fn create_pointer(denoiser: Box<DenoiseState>) -> jlong {
     let raw = Box::into_raw(denoiser);
     return raw as jlong;
-}
-
-fn throw_runtime_exception(env: &mut JNIEnv, message: String) {
-    let _ = env.throw(("java/lang/RuntimeException", message));
 }
