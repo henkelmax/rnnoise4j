@@ -8,23 +8,33 @@ public class Denoiser implements AutoCloseable {
 
     public Denoiser() throws IOException, UnknownPlatformException {
         RNNoise.load();
-        denoiser = createDenoiser();
+        denoiser = createDenoiser0();
     }
 
-    private static native long createDenoiser();
+    private static native long createDenoiser0();
 
-    public native short[] denoise(short[] input);
+    private native short[] denoise0(short[] input);
 
-    private native long destroyDenoiser();
+    public short[] denoise(short[] input) {
+        synchronized (this) {
+            return denoise0(input);
+        }
+    }
+
+    private native long destroyDenoiser0();
 
     @Override
     public void close() {
-        destroyDenoiser();
-        denoiser = 0L;
+        synchronized (this) {
+            destroyDenoiser0();
+            denoiser = 0L;
+        }
     }
 
     public boolean isClosed() {
-        return denoiser == 0L;
+        synchronized (this) {
+            return denoiser == 0L;
+        }
     }
 
 }

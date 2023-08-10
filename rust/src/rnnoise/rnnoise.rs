@@ -7,13 +7,13 @@ use crate::rnnoise::exceptions::{throw_illegal_argument_exception, throw_illegal
 const FLOAT_SHORT_SCALE: f32 = (i16::MAX - 1i16) as f32;
 
 #[no_mangle]
-pub extern "C" fn Java_de_maxhenkel_rnnoise4j_Denoiser_createDenoiser(_env: JNIEnv, _class: JClass) -> jlong {
+pub extern "C" fn Java_de_maxhenkel_rnnoise4j_Denoiser_createDenoiser0(_env: JNIEnv, _class: JClass) -> jlong {
     let denoiser = DenoiseState::new();
     return create_pointer(denoiser);
 }
 
 #[no_mangle]
-pub extern "C" fn Java_de_maxhenkel_rnnoise4j_Denoiser_denoise<'a>(mut env: JNIEnv<'a>, obj: JObject<'a>, input: JShortArray<'a>) -> JShortArray<'a> {
+pub extern "C" fn Java_de_maxhenkel_rnnoise4j_Denoiser_denoise0<'a>(mut env: JNIEnv<'a>, obj: JObject<'a>, input: JShortArray<'a>) -> JShortArray<'a> {
     let denoiser = match get_denoiser(&mut env, &obj) {
         Some(denoiser) => denoiser,
         None => {
@@ -93,7 +93,7 @@ pub extern "C" fn Java_de_maxhenkel_rnnoise4j_Denoiser_denoise<'a>(mut env: JNIE
 }
 
 #[no_mangle]
-pub extern "C" fn Java_de_maxhenkel_rnnoise4j_Denoiser_destroyDenoiser(mut env: JNIEnv, obj: JObject) {
+pub extern "C" fn Java_de_maxhenkel_rnnoise4j_Denoiser_destroyDenoiser0(mut env: JNIEnv, obj: JObject) {
     let pointer = get_pointer(&mut env, &obj);
 
     if pointer == 0 {
