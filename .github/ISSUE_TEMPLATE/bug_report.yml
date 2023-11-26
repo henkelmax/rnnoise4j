@@ -1,0 +1,48 @@
+name: Bug report
+description: File a bug report
+labels: [triage]
+assignees: henkelmax
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > [!WARNING]  
+        > This form is **only for bug reports**!
+        > Please don't abuse this for feature requests or questions.
+        > Forms that are not filled out properly will be closed without response!
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug description
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The version of the library.
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: |
+        Steps to reproduce the issue.
+        Please **don't** report issues that are not reproducible.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: false
