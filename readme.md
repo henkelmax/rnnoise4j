@@ -10,7 +10,7 @@ A Java wrapper for [RNNoise](https://jmvalin.ca/demo/rnnoise/) written in Rust u
 <dependency>
   <groupId>de.maxhenkel.rnnoise4j</groupId>
   <artifactId>rnnoise4j</artifactId>
-  <version>2.0.2</version>
+  <version>2.0.3</version>
 </dependency>
 
 <repositories>
@@ -25,7 +25,7 @@ A Java wrapper for [RNNoise](https://jmvalin.ca/demo/rnnoise/) written in Rust u
 
 ``` groovy
 dependencies {
-  implementation 'de.maxhenkel.rnnoise4j:rnnoise4j:2.0.2'
+  implementation 'de.maxhenkel.rnnoise4j:rnnoise4j:2.0.3'
 }
 
 repositories {
