@@ -69,10 +69,4 @@ target_link_libraries(rnnoise4j PRIVATE
         rnnoise-static
 )
 
-if (UNIX)
-    set_target_properties(rnnoise4j PROPERTIES
-            POSITION_INDEPENDENT_CODE ON
-    )
-endif ()
-
 message(STATUS "C compiler executable: ${CMAKE_C_COMPILER}")
