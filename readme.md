@@ -1,6 +1,6 @@
 # RNNoise4J
 
-A Java wrapper for [RNNoise](https://jmvalin.ca/demo/rnnoise/) written in Rust using JNI.
+A Java wrapper for [RNNoise](https://jmvalin.ca/demo/rnnoise/) written in C using JNI.
 
 ## Usage
 
@@ -48,5 +48,3 @@ denoiser.close();
 ## Sources
 
 - [RNNoise](https://gitlab.xiph.org/xiph/rnnoise)
-- [nnnoiseless](https://github.com/jneem/nnnoiseless)
-- [jni-rs](https://github.com/jni-rs/jni-rs)

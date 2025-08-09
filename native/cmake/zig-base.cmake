@@ -1,0 +1,28 @@
+if (CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    set(CMAKE_C_COMPILER ${CMAKE_CURRENT_LIST_DIR}/zig-cc.bat)
+    set(CMAKE_CXX_COMPILER ${CMAKE_CURRENT_LIST_DIR}/zig-cc.bat)
+    set(CMAKE_AR ${CMAKE_CURRENT_LIST_DIR}/zig-ar.bat)
+    set(CMAKE_RANLIB ${CMAKE_CURRENT_LIST_DIR}/zig-ranlib.bat)
+else ()
+    set(CMAKE_C_COMPILER ${CMAKE_CURRENT_LIST_DIR}/zig-cc)
+    set(CMAKE_CXX_COMPILER ${CMAKE_CURRENT_LIST_DIR}/zig-cc)
+    set(CMAKE_AR ${CMAKE_CURRENT_LIST_DIR}/zig-ar)
+    set(CMAKE_RANLIB ${CMAKE_CURRENT_LIST_DIR}/zig-ranlib)
+endif ()
+
+
+set(CMAKE_C_COMPILER_WORKS TRUE)
+set(CMAKE_CXX_COMPILER_WORKS TRUE)
+
+if (NOT DEFINED CMAKE_C_FLAGS_SET)
+    set(CMAKE_C_FLAGS_SET TRUE)
+
+    string(APPEND CMAKE_C_FLAGS " -target ${TARGET_TRIPLE}")
+    string(APPEND CMAKE_C_FLAGS " -s")
+    string(APPEND CMAKE_C_FLAGS " -Oz")
+    if (DEFINED CPU_ARCHITECTURE_TARGET)
+        string(APPEND CMAKE_C_FLAGS " -march=${CPU_ARCHITECTURE_TARGET}")
+    endif ()
+endif ()
+
+message(STATUS "Compiling for ${TARGET_TRIPLE} with ${CMAKE_C_COMPILER} and ${CMAKE_AR} using ${CMAKE_C_FLAGS}")
