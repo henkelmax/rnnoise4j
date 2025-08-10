@@ -2,6 +2,7 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'net.linguica.maven-settings' version "${maven_settings_version}"
+    id "de.undercouch.download" version "${gradle_download_task_version}"
 }
 
 group = 'de.maxhenkel.rnnoise4j'
@@ -17,12 +18,15 @@ java {
 
 tasks.named('sourcesJar', Jar) {
     exclude 'natives/**'
+    exclude '**/*.bin'
 }
+
+def generatedResourcesDir = layout.buildDirectory.dir("generated-resources")
 
 sourceSets {
     main {
         resources {
-            srcDir layout.buildDirectory.dir("generated-resources")
+            srcDir generatedResourcesDir
         }
     }
 }
@@ -61,6 +65,16 @@ publishing {
             url = uri('https://maven.maxhenkel.de/repository/public')
         }
     }
+}
+
+tasks.register("fetchWeights", Download) {
+    src "https://github.com/henkelmax/rnnoise-weights/releases/download/v0.2/weights_blob_small.bin"
+    dest generatedResourcesDir.get().file("rnnoise/weights_blob.bin")
+    onlyIfModified true
+}
+
+tasks.named("processResources") {
+    dependsOn("fetchWeights")
 }
 
 def platforms = [
@@ -111,7 +125,7 @@ platforms.each { target ->
     def cmakeListsPath = "../../CMakeLists.txt"
     def cmakePlatformPath = "../../cmake/${target.file}"
     def buildDir = layout.projectDirectory.dir("native/build/${target.res}")
-    def resourceDir = layout.buildDirectory.dir("generated-resources/natives/${target.res}")
+    def resourceDir = generatedResourcesDir.get().dir("natives/${target.res}")
     def cSourcesDir = layout.projectDirectory.dir('native/src')
     def outputName = "librnnoise4j.${target.libExt}"
 

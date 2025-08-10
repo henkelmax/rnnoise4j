@@ -4,8 +4,7 @@ project(rnnoise4j LANGUAGES C)
 
 set(JDK_8_VERSION "943a5ea328fd2fc8eed0aed4ec9b1957d41f8144") # jdk8u462-ga
 set(JNI_HEADER_HASH "ed99792df48670072b78028faf704a8dcb6868fe140ccc7eced9b01dfa62fef4")
-set(RNNOISE_VERSION "70f1d256acd4b34a572f999a05c87bf00b67730d")
-set(RNNOISE_HASH "0a8755f8e2d834eff6a54714ecc7d75f9932e845df35f8b59bc52a7cfe6e8b37")
+set(RNNOISE_VERSION "372f7b4b76cde4ca1ec4605353dd17898a99de38") # one commit after v0.2 to fix cross compilation
 
 if (WIN32)
     set(JNI_MD_URL "https://raw.githubusercontent.com/openjdk/jdk8u/${JDK_8_VERSION}/jdk/src/windows/javavm/export/jni_md.h")
@@ -30,25 +29,12 @@ if (DEFINED JNI_MD_URL)
     )
 endif ()
 
-set(RNNOISE_DATA_ARCHIVE "${CMAKE_BINARY_DIR}/rnnoise_data.tar.gz")
-set(RNNOISE_DATA "${CMAKE_BINARY_DIR}/rnnoise_data")
-
-file(DOWNLOAD
-        "https://media.xiph.org/rnnoise/models/rnnoise_data-0a8755f8e2d834eff6a54714ecc7d75f9932e845df35f8b59bc52a7cfe6e8b37.tar.gz"
-        ${RNNOISE_DATA_ARCHIVE}
-        EXPECTED_HASH SHA256=${RNNOISE_HASH}
-)
-file(ARCHIVE_EXTRACT
-        INPUT ${RNNOISE_DATA_ARCHIVE}
-        DESTINATION ${RNNOISE_DATA}
-)
-
 include(FetchContent)
 FetchContent_Declare(
         rnnoise
         GIT_REPOSITORY https://github.com/xiph/rnnoise.git
         GIT_TAG ${RNNOISE_VERSION}
-        PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/cmake/rnnoise/CMakeLists.txt ${CMAKE_CURRENT_BINARY_DIR}/_deps/rnnoise-src/CMakeLists.txt && ${CMAKE_COMMAND} -E copy ${RNNOISE_DATA}/src/rnnoise_data_little.h ${CMAKE_CURRENT_BINARY_DIR}/_deps/rnnoise-src/src/rnnoise_data.h && ${CMAKE_COMMAND} -E copy ${RNNOISE_DATA}/src/rnnoise_data_little.c ${CMAKE_CURRENT_BINARY_DIR}/_deps/rnnoise-src/src/rnnoise_data.c
+        PATCH_COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/cmake/rnnoise/CMakeLists.txt ${CMAKE_CURRENT_BINARY_DIR}/_deps/rnnoise-src/CMakeLists.txt && ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/cmake/rnnoise/rnnoise_data.h ${CMAKE_CURRENT_BINARY_DIR}/_deps/rnnoise-src/src/rnnoise_data.h && ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/cmake/rnnoise/rnnoise_data.c ${CMAKE_CURRENT_BINARY_DIR}/_deps/rnnoise-src/src/rnnoise_data.c
 )
 FetchContent_MakeAvailable(rnnoise)
 

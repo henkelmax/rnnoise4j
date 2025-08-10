@@ -19,3 +19,5 @@ target_include_directories(rnnoise-static PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
+
+target_compile_definitions(rnnoise-static PRIVATE USE_WEIGHTS_FILE)

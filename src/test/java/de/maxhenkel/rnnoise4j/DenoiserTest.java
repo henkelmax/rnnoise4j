@@ -39,6 +39,17 @@ public class DenoiserTest {
     }
 
     @Test
+    @DisplayName("Denoise null array")
+    void denoiseNull() throws IOException, UnknownPlatformException {
+        try (Denoiser denoiser = new Denoiser()) {
+            IllegalArgumentException e = assertThrowsExactly(IllegalArgumentException.class, () -> {
+                denoiser.denoise(null);
+            });
+            assertEquals("Input array is null", e.getMessage());
+        }
+    }
+
+    @Test
     @DisplayName("Denoise invalid frame size")
     void denoiseInvalidFrameSize() throws IOException, UnknownPlatformException {
         try (Denoiser denoiser = new Denoiser()) {

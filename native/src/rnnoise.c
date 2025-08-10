@@ -7,6 +7,12 @@
 
 #include "exceptions.h"
 
+typedef struct Denoiser {
+    DenoiseState *state;
+    RNNModel *model;
+    uint8_t *model_buffer;
+} Denoiser;
+
 /**
  * Gets the denoiser from the denoiser java object.
  *
@@ -14,21 +20,54 @@
  * @param denoiser_pointer the pointer to the denoiser
  * @return the decoder or NULL - If the denoiser could not be retrieved, this will throw a runtime exception in Java
  */
-DenoiseState *get_denoiser(JNIEnv *env, const jlong denoiser_pointer) {
+Denoiser *get_denoiser(JNIEnv *env, const jlong denoiser_pointer) {
     if (denoiser_pointer == 0) {
         throw_runtime_exception(env, "Denoiser is closed");
         return NULL;
     }
-    return (DenoiseState *) (uintptr_t) denoiser_pointer;
+    return (Denoiser *) (uintptr_t) denoiser_pointer;
 }
-
 
 JNIEXPORT jlong JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_createDenoiser0(
     JNIEnv *env,
-    jclass clazz
+    jclass clazz,
+    const jbyteArray model
 ) {
-    DenoiseState *rnnoise = rnnoise_create(NULL);
-    return (jlong) (uintptr_t) rnnoise;
+    if (model == NULL) {
+        throw_illegal_argument_exception(env, "Model is null");
+        return 0;
+    }
+    const jsize model_length = (*env)->GetArrayLength(env, model);
+    if (model_length <= 0) {
+        throw_illegal_argument_exception(env, "Model is empty");
+        return 0;
+    }
+    uint8_t *model_buffer = malloc(model_length);
+    (*env)->GetByteArrayRegion(env, model, 0, model_length, (jbyte *) model_buffer);
+    if ((*env)->ExceptionCheck(env)) {
+        free(model_buffer);
+        return 0;
+    }
+
+    RNNModel *rnn_model = rnnoise_model_from_buffer(model_buffer, model_length);
+    if (rnn_model == NULL) {
+        free(model_buffer);
+        throw_io_exception(env, "Could not load model");
+        return 0;
+    }
+
+    DenoiseState *rnnoise = rnnoise_create(rnn_model);
+    if (rnnoise == NULL) {
+        free(model_buffer);
+        rnnoise_model_free(rnn_model);
+        throw_io_exception(env, "Could not create denoiser");
+        return 0;
+    }
+    Denoiser *denoiser = malloc(sizeof(Denoiser));
+    denoiser->model = rnn_model;
+    denoiser->state = rnnoise;
+    denoiser->model_buffer = model_buffer;
+    return (jlong) (uintptr_t) denoiser;
 }
 
 JNIEXPORT jint JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_getFrameSize0(
@@ -44,8 +83,13 @@ JNIEXPORT jshortArray JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_denoise0(
     const jlong denoiser_pointer,
     const jshortArray input
 ) {
-    DenoiseState *denoiser = get_denoiser(env, denoiser_pointer);
+    const Denoiser *denoiser = get_denoiser(env, denoiser_pointer);
     if (denoiser == NULL) {
+        return 0;
+    }
+
+    if (input == NULL) {
+        throw_illegal_argument_exception(env, "Input array is null");
         return 0;
     }
 
@@ -60,7 +104,7 @@ JNIEXPORT jshortArray JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_denoise0(
         return 0;
     }
 
-    jshort *pcm_input = (*env)->GetShortArrayElements(env, input, false);
+    jshort *pcm_input = (*env)->GetShortArrayElements(env, input, NULL);
 
     const jshortArray pcm_output = (*env)->NewShortArray(env, input_length);
 
@@ -75,7 +119,7 @@ JNIEXPORT jshortArray JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_denoise0(
         for (int frame_index = 0; frame_index < frame_size; frame_index++) {
             input_buffer[frame_index] = (float) pcm_input[i * frame_size + frame_index];
         }
-        rnnoise_process_frame(denoiser, output_buffer, input_buffer);
+        rnnoise_process_frame(denoiser->state, output_buffer, input_buffer);
         for (int frame_index = 0; frame_index < frame_size; frame_index++) {
             const float sample = output_buffer[frame_index];
             if (sample >= 32767.0f) {
@@ -107,6 +151,13 @@ JNIEXPORT void JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_destroyDenoiser0(
     if (denoiser_pointer == 0) {
         return;
     }
-    DenoiseState *denoiser = (DenoiseState *) (uintptr_t) denoiser_pointer;
-    rnnoise_destroy(denoiser);
+    Denoiser *denoiser = (Denoiser *) (uintptr_t) denoiser_pointer;
+    rnnoise_destroy(denoiser->state);
+    // rnnoise_model_free(denoiser->model); somehow causes EXCEPTION_ACCESS_VIOLATION, so we manually free it
+    free(denoiser->model);
+    free(denoiser->model_buffer);
+    denoiser->state = NULL;
+    denoiser->model = NULL;
+    denoiser->model_buffer = NULL;
+    free(denoiser);
 }
