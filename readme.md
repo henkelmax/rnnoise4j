@@ -20,7 +20,7 @@ This library includes natives for:
 <dependency>
   <groupId>de.maxhenkel.rnnoise4j</groupId>
   <artifactId>rnnoise4j</artifactId>
-  <version>2.0.3</version>
+  <version>2.1.0</version>
 </dependency>
 
 <repositories>
@@ -35,7 +35,7 @@ This library includes natives for:
 
 ``` groovy
 dependencies {
-  implementation 'de.maxhenkel.rnnoise4j:rnnoise4j:2.0.3'
+  implementation 'de.maxhenkel.rnnoise4j:rnnoise4j:2.1.0'
 }
 
 repositories {
