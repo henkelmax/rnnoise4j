@@ -13,10 +13,15 @@ public class DenoiserTest {
     @Test
     @DisplayName("Denoise")
     void denoise() throws IOException, UnknownPlatformException {
-        Denoiser denoiser = new Denoiser();
-        short[] denoised = denoiser.denoise(new short[denoiser.getFrameSize() * 4]);
-        denoiser.close();
-        assertEquals(denoiser.getFrameSize() * 4, denoised.length);
+        try (Denoiser denoiser = new Denoiser()) {
+            short[] shorts = TestUtils.generateAudio(new double[]{440D, 554.37D, 659.25D}, 48000, 1D);
+            short[] buffer = new short[denoiser.getFrameSize()];
+            for (int i = 0; i < shorts.length; i += buffer.length) {
+                System.arraycopy(shorts, i, buffer, 0, buffer.length);
+                short[] denoised = denoiser.denoise(buffer);
+                assertEquals(denoiser.getFrameSize(), denoised.length);
+            }
+        }
     }
 
     @Test
