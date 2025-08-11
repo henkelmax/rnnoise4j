@@ -2,6 +2,16 @@
 
 A Java wrapper for [RNNoise](https://jmvalin.ca/demo/rnnoise/) written in C using JNI.
 
+
+This library includes natives for:
+
+- `Windows x86_64`
+- `Windows aarch64`
+- `macOS x86_64`
+- `macOS aarch64`
+- `Linux x86_64`
+- `Linux aarch64`
+
 ## Usage
 
 **Maven**
