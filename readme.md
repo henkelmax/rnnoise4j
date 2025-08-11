@@ -2,8 +2,9 @@
 
 A Java wrapper for [RNNoise](https://jmvalin.ca/demo/rnnoise/) written in C using JNI.
 
+Java 8+ is required to use this library.
 
-This library includes natives for:
+## Supported Platforms
 
 - `Windows x86_64`
 - `Windows aarch64`
@@ -55,6 +56,20 @@ short[] denoisedAudio = denoiser.denoise(noisyAudio);
 denoiser.close();
 ```
 
-## Sources
+## Building from Source
+
+### Prerequisites
+
+- [Java](https://www.java.com/en/) 21
+- [Zig](https://ziglang.org/) 0.14.1
+- [Ninja](https://ninja-build.org/)
+
+### Building
+
+``` bash
+./gradlew build
+```
+
+## Credits
 
 - [RNNoise](https://gitlab.xiph.org/xiph/rnnoise)
