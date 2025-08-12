@@ -1,5 +1,8 @@
 package de.maxhenkel.rnnoise4j;
 
+import de.maxhenkel.nativeutils.NativeInitializer;
+import de.maxhenkel.nativeutils.UnknownPlatformException;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +21,7 @@ public class Denoiser implements AutoCloseable {
             if (loadError) {
                 throw new IOException("Weights could not be loaded");
             }
-            RNNoise.load();
+            NativeInitializer.load("librnnoise4j");
             if (weights == null) {
                 try (InputStream in = Denoiser.class.getResourceAsStream(WEIGHTS_PATH)) {
                     if (in == null) {

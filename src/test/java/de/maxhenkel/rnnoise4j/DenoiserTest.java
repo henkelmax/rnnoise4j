@@ -1,5 +1,6 @@
 package de.maxhenkel.rnnoise4j;
 
+import de.maxhenkel.nativeutils.UnknownPlatformException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
