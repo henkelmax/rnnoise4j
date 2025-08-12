@@ -11,15 +11,15 @@ public class Denoiser implements AutoCloseable {
 
     public static final String WEIGHTS_PATH = "/rnnoise/weights_blob.bin";
 
-    private static boolean loadError;
+    private static IOException loadError;
     private static byte[] weights;
 
     private long pointer;
 
     public Denoiser() throws IOException, UnknownPlatformException {
         synchronized (Denoiser.class) {
-            if (loadError) {
-                throw new IOException("Weights could not be loaded");
+            if (loadError != null) {
+                throw new IOException(loadError.getMessage());
             }
             NativeInitializer.load("librnnoise4j");
             if (weights == null) {
@@ -29,7 +29,7 @@ public class Denoiser implements AutoCloseable {
                     }
                     weights = readAllBytes(in);
                 } catch (IOException e) {
-                    loadError = true;
+                    loadError = e;
                     throw e;
                 }
             }
