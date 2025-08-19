@@ -63,14 +63,28 @@ public class Denoiser implements AutoCloseable {
     private native short[] denoise0(long denoiserPointer, short[] input);
 
     /**
-     * Denoises the given input
+     * Denoises the given input.
      *
      * @param input the input pcm samples - must be a multiple of the frame size
-     * @return the denoised pcm samples
+     * @return the denoised pcm samples in a new array
      */
     public short[] denoise(short[] input) {
         synchronized (this) {
             return denoise0(pointer, input);
+        }
+    }
+
+    private native float denoiseInPlace0(long denoiserPointer, short[] input);
+
+    /**
+     * Denoises the given input in place.
+     *
+     * @param input the input pcm samples
+     * @return the probability of speech (0-1)
+     */
+    public float denoiseInPlace(short[] input) {
+        synchronized (this) {
+            return denoiseInPlace0(pointer, input);
         }
     }
 

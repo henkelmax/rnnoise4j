@@ -21,7 +21,7 @@ Java 8+ is required to use this library.
 <dependency>
   <groupId>de.maxhenkel.rnnoise4j</groupId>
   <artifactId>rnnoise4j</artifactId>
-  <version>2.1.0</version>
+  <version>2.1.2</version>
 </dependency>
 
 <repositories>
@@ -36,7 +36,7 @@ Java 8+ is required to use this library.
 
 ``` groovy
 dependencies {
-  implementation 'de.maxhenkel.rnnoise4j:rnnoise4j:2.1.0'
+  implementation 'de.maxhenkel.rnnoise4j:rnnoise4j:2.1.2'
 }
 
 repositories {
@@ -52,7 +52,10 @@ repositories {
 ``` java
 short[] noisyAudio = ...;
 Denoiser denoiser = new Denoiser();
+//Denoises and returns a new array containing the denoised audio
 short[] denoisedAudio = denoiser.denoise(noisyAudio);
+//Denoises the audio in-place and returns the probability of speech
+float probability = denoiser.denoiseInPlace(noisyAudio);
 denoiser.close();
 ```
 
