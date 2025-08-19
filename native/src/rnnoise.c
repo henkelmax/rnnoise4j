@@ -143,9 +143,9 @@ JNIEXPORT jshortArray JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_denoise0(
     return pcm_output;
 }
 
-JNIEXPORT jfloat JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_denoiseInPlace0(
+jfloat denoiseInPlace(
     JNIEnv *env,
-    jobject obj,
+    bool denoise,
     const jlong denoiser_pointer,
     const jshortArray input
 ) {
@@ -200,7 +200,9 @@ JNIEXPORT jfloat JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_denoiseInPlace0(
         if (speech_probability > total_speech_probability) {
             total_speech_probability = speech_probability;
         }
-        (*env)->SetShortArrayRegion(env, input, i * frame_size, frame_size, output_pcm_buffer);
+        if (denoise) {
+            (*env)->SetShortArrayRegion(env, input, i * frame_size, frame_size, output_pcm_buffer);
+        }
     }
 
     free(input_pcm_buffer);
@@ -209,6 +211,24 @@ JNIEXPORT jfloat JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_denoiseInPlace0(
     free(output_pcm_buffer);
 
     return total_speech_probability;
+}
+
+JNIEXPORT jfloat JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_denoiseInPlace0(
+    JNIEnv *env,
+    jobject obj,
+    const jlong denoiser_pointer,
+    const jshortArray input
+) {
+    return denoiseInPlace(env, true, denoiser_pointer, input);
+}
+
+JNIEXPORT jfloat JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_getSpeechProbability0(
+    JNIEnv *env,
+    jobject obj,
+    const jlong denoiser_pointer,
+    const jshortArray input
+) {
+    return denoiseInPlace(env, false, denoiser_pointer, input);
 }
 
 JNIEXPORT void JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_destroyDenoiser0(

@@ -88,6 +88,21 @@ public class Denoiser implements AutoCloseable {
         }
     }
 
+    private native float getSpeechProbability0(long denoiserPointer, short[] input);
+
+    /**
+     * Does the same as {@link #denoiseInPlace(short[])} but does not modify the input.
+     * Used for getting the probability of speech without denoising.
+     *
+     * @param input the input pcm samples
+     * @return the probability of speech (0-1)
+     */
+    public float getSpeechProbability(short[] input) {
+        synchronized (this) {
+            return getSpeechProbability0(pointer, input);
+        }
+    }
+
     private native void destroyDenoiser0(long denoiserPointer);
 
     /**

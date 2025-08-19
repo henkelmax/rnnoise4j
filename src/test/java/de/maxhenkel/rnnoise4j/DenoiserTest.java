@@ -48,6 +48,11 @@ public class DenoiserTest {
             float probability = denoiser.denoiseInPlace(buffer);
             assertEquals(0F, probability);
         }
+        try (Denoiser denoiser = new Denoiser()) {
+            short[] buffer = new short[denoiser.getFrameSize()];
+            float probability = denoiser.getSpeechProbability(buffer);
+            assertEquals(0F, probability);
+        }
     }
 
     @Test
