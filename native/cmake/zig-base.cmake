@@ -49,6 +49,11 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     string(APPEND BASE_LINKER_FLAGS " -Wl,--gc-sections")
     string(APPEND BASE_LINKER_FLAGS " -Wl,-s")
     string(APPEND BASE_LINKER_FLAGS " -Wl,--as-needed")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Android")
+    # Requires -ffunction-sections and -fdata-sections
+    string(APPEND BASE_LINKER_FLAGS " -Wl,--gc-sections")
+    string(APPEND BASE_LINKER_FLAGS " -Wl,-s")
+    string(APPEND BASE_LINKER_FLAGS " -Wl,--as-needed")
 endif ()
 
 
