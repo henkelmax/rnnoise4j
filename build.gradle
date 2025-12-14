@@ -6,8 +6,10 @@ plugins {
     id "de.undercouch.download" version "${gradle_download_task_version}"
 }
 
+base {
+    archivesName = 'rnnoise4j'
+}
 group = 'de.maxhenkel.rnnoise4j'
-archivesBaseName = 'rnnoise4j'
 version = library_version
 
 java {
