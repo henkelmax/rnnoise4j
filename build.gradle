@@ -45,6 +45,8 @@ sourceSets {
         resources {
             srcDir generatedResourcesDir
         }
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
     }
 }
 

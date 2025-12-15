@@ -3,15 +3,12 @@ package de.maxhenkel.rnnoise4j;
 import de.maxhenkel.nativeutils.NativeInitializer;
 import de.maxhenkel.nativeutils.UnknownPlatformException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.foreign.*;
 import java.lang.invoke.MethodHandle;
 
-public class Denoiser implements AutoCloseable {
-
-    public static final String WEIGHTS_PATH = "/rnnoise/weights_blob.bin";
+public class Denoiser extends DenoiserBase {
 
     private static final Linker LINKER = Linker.nativeLinker();
 
@@ -52,10 +49,6 @@ public class Denoiser implements AutoCloseable {
             ValueLayout.ADDRESS
     );
     private static MethodHandle FREE_METHOD;
-
-    private static IOException loadError;
-
-    private long pointer;
 
     public Denoiser() throws IOException, UnknownPlatformException {
         synchronized (Denoiser.class) {
@@ -128,19 +121,7 @@ public class Denoiser implements AutoCloseable {
         }
     }
 
-    private static byte[] readAllBytes(InputStream in) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        byte[] buf = new byte[8192];
-        int n;
-        while ((n = in.read(buf)) != -1) {
-            out.write(buf, 0, n);
-        }
-        return out.toByteArray();
-    }
-
-    /**
-     * @return the frame size the denoiser is able to process
-     */
+    @Override
     public int getFrameSize() {
         synchronized (this) {
             try {
@@ -151,12 +132,7 @@ public class Denoiser implements AutoCloseable {
         }
     }
 
-    /**
-     * Denoises the given input.
-     *
-     * @param input the input pcm samples - must be a multiple of the frame size
-     * @return the denoised pcm samples in a new array
-     */
+    @Override
     public short[] denoise(short[] input) {
         synchronized (this) {
             if (input == null) {
@@ -184,12 +160,7 @@ public class Denoiser implements AutoCloseable {
         }
     }
 
-    /**
-     * Denoises the given input in place.
-     *
-     * @param input the input pcm samples
-     * @return the probability of speech (0-1)
-     */
+    @Override
     public float denoiseInPlace(short[] input) {
         synchronized (this) {
             if (input == null) {
@@ -214,13 +185,7 @@ public class Denoiser implements AutoCloseable {
         }
     }
 
-    /**
-     * Does the same as {@link #denoiseInPlace(short[])} but does not modify the input.
-     * Used for getting the probability of speech without denoising.
-     *
-     * @param input the input pcm samples
-     * @return the probability of speech (0-1)
-     */
+    @Override
     public float getSpeechProbability(short[] input) {
         synchronized (this) {
             if (input == null) {
@@ -243,9 +208,6 @@ public class Denoiser implements AutoCloseable {
         }
     }
 
-    /**
-     * Closes the denoiser - Not calling this will cause a memory leak!
-     */
     @Override
     public void close() {
         synchronized (this) {
@@ -259,9 +221,7 @@ public class Denoiser implements AutoCloseable {
         }
     }
 
-    /**
-     * @return if the denoiser is closed
-     */
+    @Override
     public boolean isClosed() {
         synchronized (this) {
             return pointer == 0L;
