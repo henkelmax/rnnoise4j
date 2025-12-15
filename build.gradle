@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id 'java-library'
     id 'maven-publish'
@@ -15,6 +17,7 @@ version = library_version
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
+    toolchain.languageVersion = JavaLanguageVersion.of(java_toolchain_version)
     withSourcesJar()
     withJavadocJar()
 }
@@ -28,6 +31,17 @@ def generatedResourcesDir = layout.buildDirectory.dir("generated-resources")
 
 sourceSets {
     main {
+        java {
+            srcDir 'src/main/jni'
+        }
+        resources {
+            srcDir generatedResourcesDir
+        }
+    }
+    ffm {
+        java {
+            srcDir 'src/main/ffm'
+        }
         resources {
             srcDir generatedResourcesDir
         }
@@ -37,6 +51,97 @@ sourceSets {
 repositories {
     mavenCentral()
     maven { url = 'https://maven.maxhenkel.de/repository/public' }
+}
+
+def ffmClassPath = layout.buildDirectory.dir("classes/java/ffm")
+
+tasks.named('compileJava', JavaCompile).configure {
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(java_toolchain_version)
+    }
+    options.release = 8
+    options.encoding = 'UTF-8'
+}
+
+tasks.named(sourceSets.ffm.compileJavaTaskName, JavaCompile).configure {
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(java_toolchain_version)
+    }
+    options.release = 22
+    sourceCompatibility = JavaVersion.VERSION_22
+    targetCompatibility = JavaVersion.VERSION_22
+}
+
+tasks.named('shadowJar', ShadowJar).configure { sh ->
+    dependsOn tasks.named(sourceSets.ffm.compileJavaTaskName)
+    manifest {
+        attributes 'Multi-Release': 'true'
+    }
+    from(sourceSets.main.output)
+
+    into("META-INF/versions/22") {
+        from(ffmClassPath)
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.named('clean').configure {
+    doFirst {
+        delete ffmClassPath
+    }
+}
+
+tasks.register('testJNI', Test) {
+    group = 'verification'
+    useJUnitPlatform()
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+tasks.register('testFFM', Test) {
+    group = 'verification'
+    useJUnitPlatform()
+    dependsOn tasks.named(sourceSets.ffm.compileJavaTaskName)
+
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(java_toolchain_version)
+    }
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = files(ffmClassPath, sourceSets.test.runtimeClasspath)
+}
+
+tasks.register('runBenchmarksFFM', JavaExec) {
+    group = 'verification'
+
+    dependsOn tasks.named(sourceSets.ffm.compileJavaTaskName)
+
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(java_toolchain_version)
+    }
+
+    mainClass.set('de.maxhenkel.rnnoise4j.Benchmarks')
+
+    classpath = files(ffmClassPath, sourceSets.test.runtimeClasspath)
+}
+
+tasks.register('runBenchmarksJNI', JavaExec) {
+    group = 'verification'
+
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+
+    mainClass.set('de.maxhenkel.rnnoise4j.Benchmarks')
+
+    classpath = sourceSets.test.runtimeClasspath
+}
+
+configurations {
+    ffmImplementation.extendsFrom implementation
 }
 
 dependencies {

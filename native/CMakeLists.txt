@@ -64,8 +64,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(rnnoise)
 
 add_library(rnnoise4j SHARED
-        src/rnnoise.c
-        src/exceptions.c
+        src/rnnoise4j.c
+        src/rnnoise4j_jni.c
+        src/java_exceptions.c
 )
 
 target_include_directories(rnnoise4j PRIVATE
