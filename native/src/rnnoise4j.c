@@ -39,6 +39,13 @@ int32_t rnnoise4j_get_frame_size() {
     return rnnoise_get_frame_size();
 }
 
+static int16_t float_to_int16(const float value) {
+    if (!isfinite(value)) {
+        return 0;
+    }
+    return (int16_t) lrintf(fminf(fmaxf(value, -32768.0F), 32767.0F));
+}
+
 int16_t *rnnoise4j_denoise(const int64_t denoiser_pointer, const int16_t *pcm_input,
                            const int32_t input_length, int *error) {
     const Denoiser *denoiser = get_denoiser(denoiser_pointer, error);
@@ -70,16 +77,7 @@ int16_t *rnnoise4j_denoise(const int64_t denoiser_pointer, const int16_t *pcm_in
         }
         rnnoise_process_frame(denoiser->state, output_buffer, input_buffer);
         for (int frame_index = 0; frame_index < frame_size; frame_index++) {
-            const float sample = output_buffer[frame_index];
-            if (sample >= 32767.0F) {
-                output_pcm_buffer[frame_index] = 32767;
-                continue;
-            }
-            if (sample <= -32768.0F) {
-                output_pcm_buffer[frame_index] = -32768;
-                continue;
-            }
-            output_pcm_buffer[frame_index] = (int16_t) lrintf(sample);
+            output_pcm_buffer[frame_index] = float_to_int16(output_buffer[frame_index]);
         }
     }
 
@@ -127,16 +125,7 @@ float rnnoise4j_denoise_in_place(
         const float speech_probability = rnnoise_process_frame(denoiser->state, output_buffer, input_buffer);
         if (denoise) {
             for (int frame_index = 0; frame_index < frame_size; frame_index++) {
-                const float sample = output_buffer[frame_index];
-                if (sample >= 32767.0F) {
-                    input[i * frame_size + frame_index] = 32767;
-                    continue;
-                }
-                if (sample <= -32768.0F) {
-                    input[i * frame_size + frame_index] = -32768;
-                    continue;
-                }
-                input[i * frame_size + frame_index] = (int16_t) lrintf(sample);
+                input[i * frame_size + frame_index] = float_to_int16(output_buffer[frame_index]);
             }
         }
         if (speech_probability > total_speech_probability) {
