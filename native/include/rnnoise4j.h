@@ -24,7 +24,7 @@ EXPORT int64_t rnnoise4j_create_denoiser(uint8_t *model_buffer, int32_t model_le
 
 EXPORT int32_t rnnoise4j_get_frame_size();
 
-EXPORT int16_t *rnnoise4j_denoise(int64_t denoiser_pointer, const int16_t *pcm_input, int32_t input_length, int *error);
+EXPORT int rnnoise4j_denoise(int64_t denoiser_pointer, const int16_t *pcm_input, int32_t input_length, int16_t *pcm_output);
 
 EXPORT float rnnoise4j_denoise_in_place(bool denoise, int64_t denoiser_pointer, int16_t *input, int32_t input_length,
                                         int *error);
@@ -32,7 +32,5 @@ EXPORT float rnnoise4j_denoise_in_place(bool denoise, int64_t denoiser_pointer, 
 EXPORT void rnnoise4j_destroy_denoiser_buffer(int64_t denoiser_pointer, bool free_model_buffer);
 
 EXPORT void rnnoise4j_destroy_denoiser(int64_t denoiser_pointer);
-
-EXPORT void rnnoise4j_free(void *object);
 
 #endif

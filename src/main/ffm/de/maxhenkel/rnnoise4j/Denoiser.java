@@ -25,11 +25,11 @@ public class Denoiser extends DenoiserBase {
     );
     private static MethodHandle GET_FRAME_SIZE_METHOD;
     private static final FunctionDescriptor DENOISE_DESCRIPTOR = FunctionDescriptor.of(
-            ValueLayout.ADDRESS.withTargetLayout(ValueLayout.JAVA_SHORT),
+            ValueLayout.JAVA_INT,
             ValueLayout.JAVA_LONG,
             ValueLayout.ADDRESS.withTargetLayout(ValueLayout.JAVA_SHORT),
             ValueLayout.JAVA_INT,
-            ValueLayout.ADDRESS.withTargetLayout(ValueLayout.JAVA_INT)
+            ValueLayout.ADDRESS.withTargetLayout(ValueLayout.JAVA_SHORT)
     );
     private static MethodHandle DENOISE_METHOD;
     private static final FunctionDescriptor DENOISE_IN_PLACE_DESCRIPTOR = FunctionDescriptor.of(
@@ -48,7 +48,6 @@ public class Denoiser extends DenoiserBase {
     private static final FunctionDescriptor FREE_DESCRIPTOR = FunctionDescriptor.ofVoid(
             ValueLayout.ADDRESS
     );
-    private static MethodHandle FREE_METHOD;
 
     public Denoiser() throws IOException, UnknownPlatformException {
         synchronized (Denoiser.class) {
@@ -94,9 +93,6 @@ public class Denoiser extends DenoiserBase {
         MemorySegment destroy = getSymbol(lookup, "rnnoise4j_destroy_denoiser");
         DESTROY_METHOD = LINKER.downcallHandle(destroy, DESTROY_DESCRIPTOR);
 
-        MemorySegment free = getSymbol(lookup, "rnnoise4j_free");
-        FREE_METHOD = LINKER.downcallHandle(free, FREE_DESCRIPTOR);
-
         MODEL = Arena.global().allocateFrom(ValueLayout.JAVA_BYTE, weights);
     }
 
@@ -139,23 +135,17 @@ public class Denoiser extends DenoiserBase {
                 throw new IllegalArgumentException("Input array is null");
             }
             try (Arena arena = Arena.ofConfined()) {
-                MemorySegment error = createError(arena);
-                MemorySegment denoised;
+                MemorySegment outputSegment = arena.allocate(MemoryLayout.sequenceLayout(input.length, ValueLayout.JAVA_SHORT));
+                int error;
                 try {
-                    denoised = (MemorySegment) DENOISE_METHOD.invokeExact(pointer, arena.allocateFrom(ValueLayout.JAVA_SHORT, input), input.length, error);
+                    error = (int) DENOISE_METHOD.invokeExact(pointer, arena.allocateFrom(ValueLayout.JAVA_SHORT, input), input.length, outputSegment);
                 } catch (Throwable e) {
                     throw new RuntimeException(e);
                 }
-                if (denoised.address() == 0L) {
-                    throw getRuntimeException(getError(error));
+                if (error != RNNOISE_NO_ERROR) {
+                    throw getRuntimeException(error);
                 }
-                short[] result = denoised.reinterpret((long) input.length * ValueLayout.JAVA_SHORT.byteSize()).toArray(ValueLayout.JAVA_SHORT);
-                try {
-                    FREE_METHOD.invokeExact(denoised);
-                } catch (Throwable e) {
-                    throw new RuntimeException(e);
-                }
-                return result;
+                return outputSegment.reinterpret((long) input.length * ValueLayout.JAVA_SHORT.byteSize()).toArray(ValueLayout.JAVA_SHORT);
             }
         }
     }

@@ -55,17 +55,17 @@ JNIEXPORT jshortArray JNICALL Java_de_maxhenkel_rnnoise4j_Denoiser_denoise0(
     }
     const jsize input_length = (*env)->GetArrayLength(env, input);
     jshort *pcm_input = (*env)->GetShortArrayElements(env, input, NULL);
-    int error = RNNOISE_NO_ERROR;
-    int16_t *pcm_output = rnnoise4j_denoise(denoiser_pointer, pcm_input, input_length, &error);
+    jshort *output_buffer = calloc(input_length, sizeof(jshort));
+    const int error = rnnoise4j_denoise(denoiser_pointer, pcm_input, input_length, output_buffer);
     if (error != RNNOISE_NO_ERROR) {
         throw_error(error, env);
         return 0;
     }
 
     const jshortArray pcm_output_java = (*env)->NewShortArray(env, input_length);
-    (*env)->SetShortArrayRegion(env, pcm_output_java, 0, input_length, pcm_output);
+    (*env)->SetShortArrayRegion(env, pcm_output_java, 0, input_length, output_buffer);
 
-    free(pcm_output);
+    free(output_buffer);
     (*env)->ReleaseShortArrayElements(env, input, pcm_input, JNI_ABORT);
 
     return pcm_output_java;

@@ -46,29 +46,26 @@ static int16_t float_to_int16(const float value) {
     return (int16_t) lrintf(fminf(fmaxf(value, -32768.0F), 32767.0F));
 }
 
-int16_t *rnnoise4j_denoise(const int64_t denoiser_pointer, const int16_t *pcm_input,
-                           const int32_t input_length, int *error) {
-    const Denoiser *denoiser = get_denoiser(denoiser_pointer, error);
+int rnnoise4j_denoise(const int64_t denoiser_pointer, const int16_t *pcm_input,
+                      const int32_t input_length, int16_t *pcm_output) {
+    int error = RNNOISE_NO_ERROR;
+    const Denoiser *denoiser = get_denoiser(denoiser_pointer, &error);
     if (denoiser == NULL) {
-        return 0;
+        return error;
     }
     if (pcm_input == NULL) {
-        *error = RNNOISE_ERROR_INPUT_ARRAY_NULL;
-        return 0;
+        return RNNOISE_ERROR_INPUT_ARRAY_NULL;
     }
     if (input_length <= 0) {
-        *error = RNNOISE_ERROR_INPUT_ARRAY_EMPTY;
-        return 0;
+        return RNNOISE_ERROR_INPUT_ARRAY_EMPTY;
     }
     if (input_length % rnnoise_get_frame_size() != 0) {
-        *error = RNNOISE_ERROR_INPUT_ARRAY_NOT_MULTIPLE_OF_FRAME_SIZE;
-        return 0;
+        return RNNOISE_ERROR_INPUT_ARRAY_NOT_MULTIPLE_OF_FRAME_SIZE;
     }
     const int frame_size = rnnoise_get_frame_size();
 
     float *input_buffer = calloc(frame_size, sizeof(float));
     float *output_buffer = calloc(frame_size, sizeof(float));
-    int16_t *output_pcm_buffer = calloc(frame_size, sizeof(int16_t));
 
     const int frame_count = input_length / frame_size;
     for (int i = 0; i < frame_count; i++) {
@@ -77,13 +74,13 @@ int16_t *rnnoise4j_denoise(const int64_t denoiser_pointer, const int16_t *pcm_in
         }
         rnnoise_process_frame(denoiser->state, output_buffer, input_buffer);
         for (int frame_index = 0; frame_index < frame_size; frame_index++) {
-            output_pcm_buffer[frame_index] = float_to_int16(output_buffer[frame_index]);
+            pcm_output[i * frame_size + frame_index] = float_to_int16(output_buffer[frame_index]);
         }
     }
 
     free(input_buffer);
     free(output_buffer);
-    return output_pcm_buffer;
+    return error;
 }
 
 float rnnoise4j_denoise_in_place(
@@ -166,8 +163,4 @@ void rnnoise4j_destroy_denoiser(
 ) {
     // Don't free the model buffer as we keep it in Java memory
     rnnoise4j_destroy_denoiser_buffer(denoiser_pointer, false);
-}
-
-void rnnoise4j_free(void *object) {
-    free(object);
 }
