@@ -22,6 +22,22 @@ java {
     withJavadocJar()
 }
 
+allprojects {
+    tasks.withType(JavaExec).configureEach {
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_22)) {
+            jvmArgs '--enable-native-access=ALL-UNNAMED'
+        }
+    }
+    tasks.withType(Test).configureEach {
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_22)) {
+            jvmArgs '--enable-native-access=ALL-UNNAMED'
+        }
+    }
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs += ['-Xlint:-options']
+    }
+}
+
 tasks.named('sourcesJar', Jar) {
     exclude 'natives/**'
     exclude '**/*.bin'
