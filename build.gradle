@@ -23,14 +23,18 @@ java {
 }
 
 allprojects {
-    tasks.withType(JavaExec).configureEach {
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_22)) {
-            jvmArgs '--enable-native-access=ALL-UNNAMED'
+    tasks.withType(JavaExec).configureEach { task ->
+        task.doFirst {
+            if (task.javaLauncher.get().metadata.languageVersion.asInt() >= 22) {
+                task.jvmArgs('--enable-native-access=ALL-UNNAMED')
+            }
         }
     }
-    tasks.withType(Test).configureEach {
-        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_22)) {
-            jvmArgs '--enable-native-access=ALL-UNNAMED'
+    tasks.withType(Test).configureEach { task ->
+        task.doFirst {
+            if (task.javaLauncher.get().metadata.languageVersion.asInt() >= 22) {
+                task.jvmArgs('--enable-native-access=ALL-UNNAMED')
+            }
         }
     }
     tasks.withType(JavaCompile).configureEach {
